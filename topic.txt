@@ -1,0 +1,11 @@
+/xtion/rgb/camera_info
+/xtion/rgb/image
+/tf
+/tf_static
+rosbag record -O tiago_rosbag.bag /xtion/rgb/camera_info /xtion/rgb/image /tf /tf_static
+rosbag record -O tiago_rosbag_left.bag /xtion/rgb/camera_info /xtion/rgb/image /tf /tf_static
+roslaunch pal_eye_hand_calibration_tiago_dual tiago_dual_calibration_recorder.launch side:=left end_effector:=gripper recorder_name:=test_hand_eye_left_1 base_type:=pmb2
+
+
+export ROS_MASTER_URI=http://tiago-189c:11311 
+export ROS_IP=10.68.0.128 
