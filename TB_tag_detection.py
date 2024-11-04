@@ -202,10 +202,13 @@ class TagPoseProvider:
         parameters = cv2.aruco.DetectorParameters()
         detector = cv2.aruco.ArucoDetector(dictionary, parameters)
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        #gray_image = image
         corners, ids, rejected = detector.detectMarkers(gray_image)
-
+        
         if ids is not None:
             ids = [id[0] for id in ids]
+
+
             try:
                 rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, self.aruco_size, self.mtx,np.array([0,0,0,0,0]))
             except AttributeError:
@@ -213,7 +216,7 @@ class TagPoseProvider:
                 rvecs = []
                 tvecs = []
                 for corner in corners:
-                    success, rvec, tvec = cv2.solvePnP(self.get_aruco_marker_points(self.aruco_size), corner, self.mtx,[0,0,0,0,0])
+                    success, rvec, tvec = cv2.solvePnP(self.get_aruco_marker_points(self.aruco_size), corners, self.mtx,[0,0,0,0,0])
                     if success:
                         rvecs.append(rvec)
                         tvecs.append(tvec)

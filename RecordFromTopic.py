@@ -12,6 +12,8 @@ import rosbag
 import argparse
 import shutil
 from tf2_msgs.msg import TFMessage
+import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 class RecordFromTopic:
     def __init__(self, image_topic, camera_info_topic, tf_topic, outputCSV, image_rate, timeout_duration, output_dir, bag_file=None):
@@ -42,8 +44,8 @@ class RecordFromTopic:
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
-        self.frame_id = "base_link" 
-        self.child_frame_id = "gripper_right_left_finger_link" 
+        self.frame_id = "xtion_rgb_optical_frame" 
+        self.child_frame_id = "base_link" 
         """
         if self.bag_file:
             self.read_bag()
@@ -70,9 +72,17 @@ class RecordFromTopic:
         if self.save_counter % self.image_rate == 0:  
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
             filename = f'{self.output_dir}/image_{self.image_counter:04d}.jpg'
-            cv2.imwrite(filename, cv_image)
+            cv2.imwrite(filename, cv_image, [cv2.IMWRITE_JPEG_QUALITY, 100])
             self.image_counter += 1
-
+            """
+            print("msg.header.stamp",msg.header.stamp)
+            print("dir msg.header.stamp",dir(msg.header.stamp))
+            print("msg.header.stamp.to_nsec",msg.header.stamp.to_nsec())
+            print("msg.header.stamp.to_sec",msg.header.stamp.to_sec())
+            print("msg.header.stamp.secs",msg.header.stamp.secs)
+            print("msg.header.stamp.to_time",msg.header.stamp.to_time())
+            print("msg.header.stamp.nsecs",msg.header.stamp.nsecs)
+            """
             self.record_pose(msg.header.stamp)
 
     def camera_info_callback(self, msg):
@@ -95,10 +105,12 @@ class RecordFromTopic:
     def record_pose(self, timestamp):
         try:
             trans = self.tf_buffer.lookup_transform(self.frame_id, self.child_frame_id, timestamp, rospy.Duration(1.0))
+            rpy = np.flip( R.from_quat([trans.transform.rotation.x, trans.transform.rotation.y, trans.transform.rotation.z,trans.transform.rotation.w]).as_euler("ZYX",degrees=False))
+
             with open(self.csv_filename, 'a', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow([timestamp, trans.transform.translation.x, trans.transform.translation.y, trans.transform.translation.z, 
-                                 trans.transform.rotation.x, trans.transform.rotation.y, trans.transform.rotation.z])
+                                 rpy[0],rpy[1],rpy[2]])
                 self.pose_counter += 1
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
             print(f"Transformation non trouvée : {e}")

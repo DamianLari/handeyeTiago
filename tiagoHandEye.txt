@@ -1,0 +1,43 @@
+source /opt/pal/gallium/setup.sh
+
+/opt/pal/gallium/share/pal_gripper_description/urdf/gripper.urdf.xacro
+<xacro:include filename="$(find pal_gripper_description)/urdf/aruco.urdf.xacro" />
+/opt/pal/gallium/share/pal_gripper_description/urdf/aruco.urdf.xacro
+
+/opt/pal/gallium/share/tiago_description/urdf
+sudo nano -w createAruco.py
+sudo nano -w aruco.sdf
+
+roslaunch tiago_dual_187_gazebo tiago_dual_navigation.launch webgui:=true
+
+cd /usr/share/cesi-robotics/ros/tiago_examples
+sudo nano -w create_handeye_dataset.py
+/usr/share/cesi-conda/miniconda3cesi/bin/conda run --no-capture-output -n cesi-python python create_handeye_dataset.py
+/usr/share/cesi-conda/miniconda3cesi/bin/conda run --no-capture-output -n cesi-python python createAruco.py
+
+sudo cp /opt/pal/gallium/share/pal_gripper_description/urdf/gripper.urdf.xacro /home/viewadmin/
+
+
+rosrun rqt_joint_trajectory_controller rqt_joint_trajectory_controller
+
+kill -9 $(ps aux|grep 'create_handeye_dataset.py'| awk '{print $2}')
+
+rosbag record -O tiago_rosbag.bag /xtion/rgb/camera_info /xtion/rgb/image_color /tf /tf_static /aruco_pose
+
+/opt/pal/gallium/share/pal_gripper_description/urdf/aruco.urdf.xacro
+1280/1024
+
+{
+    "mtx": [
+        [3761.434, 0.0, 2664.474],
+        [0.0, 3751.258, 1690.8854],
+        [0.0, 0.0, 1.0]
+    ],
+    "dist": [
+        0.0,
+        -0.0,
+        -0.0,
+        0.0,
+        0.0
+    ]
+}

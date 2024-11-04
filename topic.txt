@@ -9,3 +9,11 @@ roslaunch pal_eye_hand_calibration_tiago_dual tiago_dual_calibration_recorder.la
 
 export ROS_MASTER_URI=http://tiago-189c:11311 
 export ROS_IP=10.68.0.128 
+
+
+rosrun tf tf_echo base_link gripper_left_grasping_frame
+
+
+rosbag record -O tiago_rosbag.bag /xtion/rgb/camera_info /xtion/rgb/image_color /tf /tf_static
+
+rosbag record -O tiago_rosbag.bag /xtion/rgb/camera_info /xtion/rgb/image

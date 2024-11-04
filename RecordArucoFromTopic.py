@@ -43,11 +43,14 @@ class RecordFromTopic:
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         self.frame_id = "base_link" 
-        self.child_frame_id = "gripper_right_left_finger_link"
+        self.child_frame_id = "gripper_left_aruco_link"
 
         # Transformation from gripper to ArUco
-        self.transformation = self.transformation_matrix(['x', 'y', 'z'], ['-x', '-z', '-y'])
-        self.gripper_position_aruco = np.array([0, -0.25, 0])
+        #self.transformation = self.transformation_matrix(['x', 'y', 'z'], ['y', 'z', '-x'])
+        self.transformation = self.transformation_matrix(['x', 'y', 'z'], ['x', 'y', 'z'])
+        
+
+        self.gripper_position_aruco = np.array([0, 0, 0])
 
         rospy.Subscriber(self.image_topic, Image, self.image_callback)
         rospy.Subscriber(self.camera_info_topic, CameraInfo, self.camera_info_callback)
@@ -81,6 +84,7 @@ class RecordFromTopic:
         }
         with open('camera_info.json', 'w') as json_file:
             json.dump(camera_info, json_file, indent=4)
+            
     def transformation_matrix(self, rep_a, rep_b):
         """
         Calcule la matrice de transformation entre deux repères.
@@ -137,7 +141,7 @@ class RecordFromTopic:
             gripper_rotation, gripper_translation = self.get_gripper_transform(timestamp)
             if gripper_rotation is None or gripper_translation is None:
                 return
-                
+            
             # Calculer la position de l'ArUco par rapport à la base du robot
             aruco_position_base = np.dot(gripper_rotation, self.gripper_position_aruco.reshape(3, 1)) + gripper_translation
             aruco_rotation_base = np.dot(gripper_rotation, self.transformation)
