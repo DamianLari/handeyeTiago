@@ -1,0 +1,12 @@
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[user]
+	email = dlarocheribert@cesi.fr
+	name = dlarocheribert
+[credential "http://gitrecherche.cesi.fr"]
+	provider = generic
+[credential]
+	helper = "!f() { /root/.vscode-server/bin/f1e16e1e6214d7c44d078b1f0607b2388f29d729/node /tmp/vscode-remote-containers-d74cb25a-98df-4afc-a185-fb0d021ff267.js git-credential-helper $*; }; f"
