@@ -29,7 +29,6 @@ def spawn_box():
         tf_buffer = tf2_ros.Buffer()
         tf_listener = tf2_ros.TransformListener(tf_buffer)
         
-        # Liste des translations et rotations pour les poses ArUco
         aruco_pose_list = [
             [0, 0, 0],
             [0.5, 0, 0], 
@@ -66,15 +65,13 @@ def spawn_box():
         ]
 
         initial_translation = np.array([2, 0, 0])
-        initial_rotation = R.from_euler('zyx', [3.14159, 1.5708, 0])
+        initial_rotation = R.from_euler('ZYX', [3.14159, 1.5708, 0])
 
         for idx, (translation, rotation) in enumerate(zip(aruco_pose_list, aruco_rota_list)):
             try:
-                # Obtenir la transformation de la caméra vers le repère mondial
                 transform: TransformStamped = tf_buffer.lookup_transform('map', 'xtion_rgb_optical_frame', rospy.Time(0), rospy.Duration(5.0))
                 rospy.loginfo("Transformation received between world and xtion_rgb_optical_frame")
                 
-                # Matrice de transformation de la caméra
                 H_camera = np.eye(4)
                 camera_rotation = R.from_quat([transform.transform.rotation.x,
                                                transform.transform.rotation.y,
@@ -85,15 +82,21 @@ def spawn_box():
                                     transform.transform.translation.y,
                                     transform.transform.translation.z]
                 
-                # Matrice de transformation ArUco
-                H_aruco = np.eye(4)
-                H_aruco[0:3, 3] = initial_translation + translation  # Ajouter la translation
+                #H_aruco = np.eye(4)
+                #H_aruco[0:3, 3] = initial_translation + translation  
 
-                aruco_rotation = R.from_euler('zyx', rotation)
-                initial_rot_matrix = initial_rotation * aruco_rotation  # Rotation combinée initiale et spécifique
-                H_aruco[0:3, 0:3] = initial_rot_matrix.as_matrix()
+                #aruco_rotation = R.from_euler('zyx', rotation)
+                aruco_rotation = R.from_euler('ZYX', np.flip(rotation))
+                initial_rot_matrix = initial_rotation * aruco_rotation  
+                #H_aruco[0:3, 0:3] = initial_rot_matrix.as_matrix()
 
-                # Transformation finale
+                H_Trans = np.eye(4)
+                H_Trans[0:3, 3] = initial_translation + translation 
+                H_Rot= initial_rot_matrix.as_matrix()
+
+                H_aruco= H_Rot.dot(H_Trans)
+
+
                 H_world = np.dot(H_camera, H_aruco)
                 
                 box_pose = Pose()

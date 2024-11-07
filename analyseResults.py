@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
 import numpy as np
+
 class AnalyseResults:
     def __init__(self, output_file_path):
         self.output_file_path = output_file_path

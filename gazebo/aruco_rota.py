@@ -11,6 +11,8 @@ import time
 import sys
 import signal
 import numpy as np
+from scipy.spatial.transform import Rotation as R
+import math
 
 def spawn_box():
     rospy.init_node('spawn_box', anonymous=True)
@@ -30,8 +32,7 @@ def spawn_box():
         
         tf_buffer = tf2_ros.Buffer()
         tf_listener = tf2_ros.TransformListener(tf_buffer)
-    
-        # Liste de rotations
+        """
         aruco_rota_list = [
             [0, 0, 0],          # No rotation
             [np.pi/6, 0, 0],    # Roll 30°
@@ -50,15 +51,39 @@ def spawn_box():
             [0, 0, np.pi],      # Yaw 180°
             [0, 0, -np.pi/2],   # Yaw -90°
         ]
+        """
+        aruco_rota_list = [
+            [0, 0, 0],
+            [np.pi/6, np.pi/6, 0],       # Roll 30° and Pitch 30°
+            [np.pi/4, 0, np.pi/4],       # Roll 45° and Yaw 45°
+            [0, np.pi/6, np.pi/6],       # Pitch 30° and Yaw 30°
+            [-np.pi/4, np.pi/4, 0],      # Roll -45° and Pitch 45°
+            [0, -np.pi/6, np.pi/4],      # Pitch -30° and Yaw 45°
+            [np.pi/3, np.pi/3, np.pi/3], # Roll 60°, Pitch 60°, and Yaw 60°
+            [-np.pi/4, -np.pi/4, -np.pi/4],  # Roll -45°, Pitch -45°, Yaw -45°
+            [np.pi/6, np.pi/6, np.pi/6], # Roll 30°, Pitch 30°, Yaw 30°
+            [-np.pi/3, np.pi/6, np.pi/4],# Roll -60°, Pitch 30°, Yaw 45°
+            [np.pi/4, -np.pi/6, np.pi/4],# Roll 45°, Pitch -30°, Yaw 45°
+            [-np.pi/6, np.pi/6, np.pi/3],# Roll -30°, Pitch 30°, Yaw 60°
+            [np.pi/4, np.pi/3, -np.pi/4],# Roll 45°, Pitch 60°, Yaw -45°
+            [-np.pi/4, np.pi/4, np.pi/2],# Roll -45°, Pitch 45°, Yaw 90°
+            [np.pi/6, -np.pi/4, np.pi/3],# Roll 30°, Pitch -45°, Yaw 60°
+            [np.pi/3, -np.pi/6, -np.pi/4], # Roll 60°, Pitch -30°, Yaw -45°
+            [np.pi/4, np.pi/4, np.pi/4],  # Roll 45°, Pitch 45°, Yaw 45°
+            [-np.pi/6, -np.pi/4, np.pi/6],# Roll -30°, Pitch -45°, Yaw 30°
+            [np.pi/3, -np.pi/3, np.pi/6], # Roll 60°, Pitch -60°, Yaw 30°
+            [-np.pi/6, np.pi/3, -np.pi/3],# Roll -30°, Pitch 60°, Yaw -60°
+            [np.pi/4, -np.pi/3, np.pi/3], # Roll 45°, Pitch -60°, Yaw 60°
+        ]
 
-        # Position initiale fixe pour toutes les étapes
-        initial_pose = [2, 0, 0]
+        initial_pose = [0, 0, 2]
         quaternion_180z = tft.quaternion_from_euler(0, 0, 3.14159) 
         quaternion_90y = tft.quaternion_from_euler(0, 1.5708, 0)   
         quaternion_180x = tft.quaternion_from_euler(3.14159, 0, 0)
 
         initial_rota = tft.quaternion_multiply(quaternion_90y, quaternion_180x)
-        
+        rate_1hz = rospy.Rate(1)
+        rate_4hz = rospy.Rate(0.25)
         rospy.loginfo("Phase 2 : Rotation uniquement")
         for idx, rota in enumerate(aruco_rota_list):
             try:
@@ -67,17 +92,44 @@ def spawn_box():
 
                 box_pose = Pose()
 
-                # Garder la position fixe
-                box_pose.position.x = transform.transform.translation.x + initial_pose[0]
-                box_pose.position.y = transform.transform.translation.y + initial_pose[1]
-                box_pose.position.z = transform.transform.translation.z + initial_pose[2]
+                HTete=np.eye(4)
+                HTete[0:3,0:3]= R.from_quat([transform.transform.rotation.x,transform.transform.rotation.y,transform.transform.rotation.z,transform.transform.rotation.w]).as_matrix()
+                HTete[0:3,3]  =[transform.transform.translation.x,transform.transform.translation.y,transform.transform.translation.z]
 
-                # Appliquer la rotation de la liste aruco_rota_list
-                roll_offset, pitch_offset, yaw_offset = rota
+                Rot_perpendiculaire=np.eye(3)
+                Rot_perpendiculaire= R.from_euler("ZYX",[-math.pi/2,math.pi,0],degrees=False).as_matrix()
+                #Rot_perpendiculaire= R.from_euler("ZYX",[0,0,0],degrees=False).as_matrix()
+                Rot_wanted=R.from_euler("ZYX",[rota[2],rota[1],rota[0]],degrees=False).as_matrix()
 
-                # Convertir les angles Euler en quaternion
-                quaternion = tft.quaternion_from_euler(roll_offset, pitch_offset, yaw_offset)
-                combined_quaternion = tft.quaternion_multiply(quaternion, initial_rota)
+                Rotation_Aruco=np.eye(4)
+                Rotation_Aruco[0:3,0:3]=Rot_wanted.dot(Rot_perpendiculaire)
+
+                Translation_Aruco=np.eye(4)
+                Translation_Aruco[0:3,3]=initial_pose
+
+                Rot_wanted_4x4 = np.eye(4)
+                Rot_wanted_4x4[:3, :3] = Rot_wanted
+
+                HTag = np.eye(4)
+                HTag = Translation_Aruco.dot(Rot_wanted_4x4)
+                
+                Haruco=np.eye(4)
+                #Haruco= Rotation_Aruco.dot(Translation_Aruco)
+                Haruco= Translation_Aruco.dot(Rotation_Aruco)
+                #arucoCamEulerAngle = np.flip(R.from_matrix(Haruco[0:3,0:3]).as_euler('ZYX')) #avec initial rota
+                arucoCamEulerAngle = np.flip(R.from_matrix(HTag[0:3,0:3]).as_euler('ZYX')) # sans initial rota
+
+                #Haruco[0:3,0:3]= Rot_wanted.dot(Rot_perpendiculaire)
+                #Haruco[0:3,3]=initial_pose
+
+                Hworld= HTete.dot(Haruco)
+
+                box_pose.position.x = Hworld[0,3]
+                box_pose.position.y = Hworld[1,3]
+                box_pose.position.z = Hworld[2,3]
+
+
+                combined_quaternion = R.from_matrix(Hworld[0:3,0:3]).as_quat()
                 box_pose.orientation.x = combined_quaternion[0]
                 box_pose.orientation.y = combined_quaternion[1]
                 box_pose.orientation.z = combined_quaternion[2]
@@ -87,16 +139,17 @@ def spawn_box():
                 
                 combined_euler = tft.euler_from_quaternion(combined_quaternion)
 
-                publish_pose(pose_pub, initial_pose[0],initial_pose[1],initial_pose[2],*combined_euler)
-                time.sleep(2)
+                #publish_pose(pose_pub, Hworld[0,3],Hworld[1,3],Hworld[2,3],*combined_euler)
+                publish_pose(pose_pub, initial_pose[0],initial_pose[1],initial_pose[2],*arucoCamEulerAngle)
+
+                rate_1hz.sleep()
+
                 spawn_model_prox(model_name, model_xml, '', box_pose, 'world')
-
                 rospy.loginfo(f"Aruco créé pour la pose de rotation numéro {idx}")
-                time.sleep(4)
-                
-
-                # Supprimer le modèle après un certain temps
+                rate_4hz.sleep()
                 delete_model(model_name)
+                rate_1hz.sleep()
+
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
                 rospy.logerr(f"Error fetching transform: {e}")
                 return

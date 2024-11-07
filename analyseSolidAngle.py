@@ -8,14 +8,14 @@ def Erreur6DOF(row, next_row):
     Hrot_Tag_n = np.eye(3)
     Hrot_Tag_n_plus_1 = np.eye(3)
 
-    Hrot_Tag_n[0:3, 0:3] = R.from_euler("ZYX", [row['tag_rz'], row['tag_ry'], row['tag_rx']], degrees=False).as_matrix()
-    Hrot_Tag_n_plus_1[0:3, 0:3] = R.from_euler("ZYX", [next_row['tag_rz'], next_row['tag_ry'], next_row['tag_rx']], degrees=False).as_matrix()
+    Hrot_Tag_n[0:3, 0:3] = R.from_euler("ZYX", [row['gripper_rz'], row['gripper_ry'], row['gripper_rx']], degrees=False).as_matrix()
+    Hrot_Tag_n_plus_1[0:3, 0:3] = R.from_euler("ZYX", [next_row['gripper_rz'], next_row['gripper_ry'], next_row['gripper_rx']], degrees=False).as_matrix()
 
     Hroterreur = Hrot_Tag_n_plus_1.dot(np.linalg.inv(Hrot_Tag_n))
 
-    Ex = next_row['tag_tx'] - row['tag_tx']
-    Ey = next_row['tag_ty'] - row['tag_ty']
-    Ez = next_row['tag_tz'] - row['tag_tz']
+    Ex = next_row['gripper_tx'] - row['gripper_tx']
+    Ey = next_row['gripper_ty'] - row['gripper_ty']
+    Ez = next_row['gripper_tz'] - row['gripper_tz']
     E_3D = math.sqrt(Ex**2 + Ey**2 + Ez**2)
 
     ErotVec = R.from_matrix(Hroterreur[0:3, 0:3]).as_rotvec()

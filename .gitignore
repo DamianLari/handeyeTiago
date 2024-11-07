@@ -1,6 +1,7 @@
 *.bag
 
 images/
+newRepere_images/
 CheckArucoDetection/
 CheckAprilDetection/
 backup/

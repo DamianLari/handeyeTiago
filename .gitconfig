@@ -9,4 +9,4 @@
 [credential "http://gitrecherche.cesi.fr"]
 	provider = generic
 [credential]
-	helper = "!f() { /root/.vscode-server/bin/f1e16e1e6214d7c44d078b1f0607b2388f29d729/node /tmp/vscode-remote-containers-d74cb25a-98df-4afc-a185-fb0d021ff267.js git-credential-helper $*; }; f"
+	helper = "!f() { /root/.vscode-server/bin/f1e16e1e6214d7c44d078b1f0607b2388f29d729/node /tmp/vscode-remote-containers-791cabf2-b815-40b0-959a-f8222f8f0744.js git-credential-helper $*; }; f"

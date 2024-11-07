@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 import imageio
+import os
 
 df = pd.read_csv('merged_poses_new.csv')
 
@@ -61,7 +62,6 @@ for i in range(num_poses):
 
 imageio.mimsave('gripper_tag_comparison.gif', images, duration=0.5)
 
-import os
 for i in range(num_poses):
     os.remove(f'tempImage/temp_{i}.png')
 

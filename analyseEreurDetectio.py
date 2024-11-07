@@ -67,7 +67,7 @@ def plotTransla():
 def plotRota():
     fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(14, 10))  
     rotation_colors = ['red', 'green', 'blue']
-
+    
     df.plot(x='time',y=['tag_rx', 'gripper_rx'], ax=axes[0], marker='o', color=rotation_colors, title='Rotation X (en radians)')
     df.plot(x='time',y=['tag_ry', 'gripper_ry'], ax=axes[1], marker='o', color=rotation_colors, title='Rotation Y (en radians)')
     df.plot(x='time',y=['tag_rz', 'gripper_rz'], ax=axes[2], marker='o', color=rotation_colors, title='Rotation Z (en radians)')
@@ -276,14 +276,13 @@ def plotErreurDistance():
     print("Le graphique comparant les distances a été sauvegardé sous forme d'image.")
 
 
-df = pd.read_csv('merged_poses_new.csv')
+df = pd.read_csv('merged_poses.csv')
 
 df[['E_3D', 'angleSolide', 'Erx', 'Ery', 'Erz']] = df.apply(lambda row: pd.Series(Erreur6DOF(row)), axis=1)
 df.to_csv('pose_errors_6DOF.csv', index=False)
 
 df['distance_from_camera'] = df.apply(lambda row: calc_distance_from_camera(row['gripper_tx'], row['gripper_ty'], row['gripper_tz']), axis=1)
 
-# Calcul des erreurs 3D et angulaires et de leurs moyennes
 df['error_3d'] = df.apply(lambda row: calc_3d_error(np.array([row['gripper_tx'], row['gripper_ty'], row['gripper_tz']]), 
                                                     np.array([row['tag_tx'], row['tag_ty'], row['tag_tz']])), axis=1)
 df['error_angular'] = df.apply(lambda row: calc_angular_error(np.array([row['gripper_rx'], row['gripper_ry'], row['gripper_rz']]), 
@@ -297,7 +296,6 @@ df.to_csv('pose_errors.csv', index=False)
 print(f"Erreur moyenne 3D finale : {df['mean_3d_error'].iloc[-1]:.4f}")
 print(f"Erreur moyenne angulaire finale : {df['mean_angular_error'].iloc[-1]:.4f}")
 
-# Générer les graphiques et les analyses
 createTwoGraphs()
 plotTransla()
 barTransla()

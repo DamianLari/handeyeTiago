@@ -31,7 +31,6 @@ def spawn_box():
         tf_buffer = tf2_ros.Buffer()
         tf_listener = tf2_ros.TransformListener(tf_buffer)
         
-        # Liste de translations
         aruco_pose_list = [
             [0, 0, 0],    
             [0.5, 0, 0], 
@@ -48,9 +47,6 @@ def spawn_box():
             [0, 0, -1]
         ]
 
-  
-
-        # Position initiale fixe pour toutes les étapes
         initial_pose = [2, 0, 0]
         """
         quaternion_180z = tft.quaternion_from_euler(0, 0, 3.14159) 
@@ -60,7 +56,7 @@ def spawn_box():
         initial_rota = tft.quaternion_multiply(quaternion_90y, quaternion_180x)
         """
         roll_init, pitch_init, yaw_init = 3.14159, 1.5708, 0
-        initial_rota = tft.quaternion_from_euler(roll_init, pitch_init, yaw_init)
+        initial_rota = tft.quaternion_from_euler(roll_init, pitch_init, yaw_init)#check avec scipy sur 2 3 examples
         
         
         rospy.loginfo("Phase 1 : Translation uniquement")
@@ -88,12 +84,12 @@ def spawn_box():
                 
                 publish_pose(pose_pub, x_pose, y_pose, z_pose,roll_init, pitch_init,yaw_init)
                 time.sleep(2)
-                spawn_model_prox(model_name, model_xml, '', box_pose, 'world')
 
+                spawn_model_prox(model_name, model_xml, '', box_pose, 'world')
                 rospy.loginfo(f"Aruco créé pour la pose de translation numéro {idx}")
                 time.sleep(4)
-
                 delete_model(model_name)
+
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
                 rospy.logerr(f"Error fetching transform: {e}")
                 return
