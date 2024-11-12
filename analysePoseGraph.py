@@ -5,7 +5,7 @@ from scipy.spatial.transform import Rotation as R
 import imageio
 import os
 
-df = pd.read_csv('merged_poses_new.csv')
+df = pd.read_csv('merged_poses.csv')
 
 num_poses = len(df)
 

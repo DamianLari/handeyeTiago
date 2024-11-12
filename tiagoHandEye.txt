@@ -14,6 +14,9 @@ cd /usr/share/cesi-robotics/ros/tiago_examples
 sudo nano -w create_handeye_dataset.py
 /usr/share/cesi-conda/miniconda3cesi/bin/conda run --no-capture-output -n cesi-python python create_handeye_dataset.py
 /usr/share/cesi-conda/miniconda3cesi/bin/conda run --no-capture-output -n cesi-python python createAruco.py
+/usr/share/cesi-conda/miniconda3cesi/bin/conda run --no-capture-output -n cesi-python python createArucoTransla.py
+/usr/share/cesi-conda/miniconda3cesi/bin/conda run --no-capture-output -n cesi-python python createArucoRota.py
+
 
 sudo cp /opt/pal/gallium/share/pal_gripper_description/urdf/gripper.urdf.xacro /home/viewadmin/
 
@@ -23,21 +26,15 @@ rosrun rqt_joint_trajectory_controller rqt_joint_trajectory_controller
 kill -9 $(ps aux|grep 'create_handeye_dataset.py'| awk '{print $2}')
 
 rosbag record -O tiago_rosbag.bag /xtion/rgb/camera_info /xtion/rgb/image_color /tf /tf_static /aruco_pose
+rosbag record -O tiago_rosbagTransla.bag /xtion/rgb/camera_info /xtion/rgb/image_color /tf /tf_static /aruco_pose
+rosbag record -O tiago_rosbagRota.bag /xtion/rgb/camera_info /xtion/rgb/image_color /tf /tf_static /aruco_pose
 
 /opt/pal/gallium/share/pal_gripper_description/urdf/aruco.urdf.xacro
 1280/1024
 
-{
-    "mtx": [
-        [3761.434, 0.0, 2664.474],
-        [0.0, 3751.258, 1690.8854],
-        [0.0, 0.0, 1.0]
-    ],
-    "dist": [
-        0.0,
-        -0.0,
-        -0.0,
-        0.0,
-        0.0
-    ]
-}
+python3 gazebo/RecordAruco.py rota --image_topic /xtion/rgb/image_color --camera_info_topic /xtion/rgb/camera_info --gripper_pose_csv gripper_pose.csv --image_rate 1 --timeout 2.0
+python3 GetTagPose.py --image_folder images --calibration_file camera_info.json --tag_id 11 --csv_filename tag_pose.csv
+
+
+2.61784186738517,-0.0037845163317342667,-0.005148152495695943,
+2.653589717738214e-06,2.653589717738214e-06,-2.653589717738214e-06

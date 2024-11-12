@@ -37,7 +37,7 @@ class RecordFromTopic:
         # Initialisation du fichier CSV
         if not os.path.isfile(self.csv_filename):
             with open(self.csv_filename, 'w', newline='') as csvfile:
-                fieldnames = ['time', 'tx', 'ty', 'tz', 'rx', 'ry', 'rz']
+                fieldnames = ['image_file','time', 'tx', 'ty', 'tz', 'rx', 'ry', 'rz']
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
 
@@ -63,7 +63,7 @@ class RecordFromTopic:
             filename = f'{self.output_dir}/image_{self.image_counter:04d}.png'
             cv2.imwrite(filename, cv_image)
             self.image_counter += 1
-            self.record_pose(msg.header.stamp)
+            self.record_pose(f'image_{self.image_counter:04d}.png',msg.header.stamp)
 
     def camera_info_callback(self, msg):
         self.last_msg_time = rospy.Time.now()
@@ -81,12 +81,13 @@ class RecordFromTopic:
     def aruco_pose_callback(self, msg):
         self.received_aruco_pose = msg.data
             
-    def record_pose(self, timestamp):
+    def record_pose(self, image_name,timestamp):
         try:
             # Enregistrement dans le fichier CSV des translations et rotations reçues
             with open(self.csv_filename, 'a', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow([
+                    image_name,
                     timestamp, 
                     self.received_aruco_pose[0], self.received_aruco_pose[1], self.received_aruco_pose[2],  # tx, ty, tz
                     self.received_aruco_pose[3], self.received_aruco_pose[4], self.received_aruco_pose[5]   # rx, ry, rz

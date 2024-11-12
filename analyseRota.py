@@ -5,12 +5,16 @@ from scipy.spatial.transform import Rotation as R
 import math
 import csv
 
+
+use_degrees = True
+unit_label = "degrés" if use_degrees else "radians"
+
 def Erreur6DOF(target,row, next_row):
     Hrot_Tag_n = np.eye(3)
     Hrot_Tag_n_plus_1 = np.eye(3)
 
-    Hrot_Tag_n[0:3, 0:3] = R.from_euler("ZYX", [row[f'{target}_rz'], row[f'{target}_ry'], row[f'{target}_rx']], degrees=False).as_matrix()
-    Hrot_Tag_n_plus_1[0:3, 0:3] = R.from_euler("ZYX", [next_row[f'{target}_rz'], next_row[f'{target}_ry'], next_row[f'{target}_rx']], degrees=False).as_matrix()
+    Hrot_Tag_n[0:3, 0:3] = R.from_euler("ZYX", [row[f'{target}_rz'], row[f'{target}_ry'], row[f'{target}_rx']], degrees=use_degrees).as_matrix()
+    Hrot_Tag_n_plus_1[0:3, 0:3] = R.from_euler("ZYX", [next_row[f'{target}_rz'], next_row[f'{target}_ry'], next_row[f'{target}_rx']], degrees=use_degrees).as_matrix()
 
     Hroterreur = Hrot_Tag_n_plus_1.dot(np.linalg.inv(Hrot_Tag_n))
 
@@ -23,7 +27,9 @@ def Erreur6DOF(target,row, next_row):
     angleSolide = np.linalg.norm(ErotVec)
     if ErotVec[2] < 0:
         angleSolide = -angleSolide
-
+    if use_degrees:
+        angleSolide = np.degrees(angleSolide)
+    
     return E_3D, angleSolide
 
 def process_csv(input_file, output_file):
@@ -68,6 +74,8 @@ def compute_values(target,rows):
             E_3D, angleSolide = Erreur6DOF(target,row, next_row)
             
             translations.append(E_3D)
+            if use_degrees:
+                angleSolide = np.degrees(angleSolide)
             angles_solides.append(angleSolide)
             steps.append(i)
     return steps, translations, angles_solides
@@ -78,6 +86,7 @@ def process(input_file):
         rows = list(reader)
         steps_tag, translations_tag,angles_solides_tag = compute_values('tag',rows)        
         steps_gt, translations_gt,angles_solides_gt = compute_values('gripper',rows)
+
     return steps_gt,translations_tag, angles_solides_tag , translations_gt,angles_solides_gt
 
 def save_solid_angles_to_csv(steps, translations_tag, angles_solides_tag, translations_gt, angles_solides_gt, output_file='solid_angles.csv'):
@@ -106,12 +115,12 @@ def DOFErreur(row):
     Hrot_Gripper = np.eye(3)
     Hrot_Tag = np.eye(3)
 
-    Hrot_Gripper[0:3, 0:3] = R.from_euler("ZYX", [row['gripper_rz'], row['gripper_ry'], row['gripper_rx']], degrees=False).as_matrix()
+    Hrot_Gripper[0:3, 0:3] = R.from_euler("ZYX", [row['gripper_rz'], row['gripper_ry'], row['gripper_rx']], degrees=use_degrees).as_matrix()
     #H_Gripper[0, 3] = row['gripper_tx']
     #H_Gripper[1, 3] = row['gripper_ty']
     #H_Gripper[2, 3] = row['gripper_tz']
 
-    Hrot_Tag[0:3, 0:3] = R.from_euler("ZYX", [row['tag_rz'], row['tag_ry'], row['tag_rx']], degrees=False).as_matrix()
+    Hrot_Tag[0:3, 0:3] = R.from_euler("ZYX", [row['tag_rz'], row['tag_ry'], row['tag_rx']], degrees=use_degrees).as_matrix()
     #H_Tag[0, 3] = row['tag_tx']
     #H_Tag[1, 3] = row['tag_ty']
     #H_Tag[2, 3] = row['tag_tz']
@@ -124,8 +133,8 @@ def DOFErreur(row):
     Ez = row['tag_tx'] - row['gripper_tx']
 
     E_3D = math.sqrt(Ex**2 + Ey**2 + Ez**2)
-    Erpy = np.flip(R.from_matrix(Hroterreur[0:3, 0:3]).as_euler("ZYX", degrees=True))
-    ErotVec = R.from_matrix(Hroterreur[0:3, 0:3]).as_rotvec(degrees=True)
+    Erpy = np.flip(R.from_matrix(Hroterreur[0:3, 0:3]).as_euler("ZYX", degrees=use_degrees))
+    ErotVec = R.from_matrix(Hroterreur[0:3, 0:3]).as_rotvec(degrees=use_degrees)
     angleSolide = np.linalg.norm(ErotVec)
 
     if ErotVec[2] < 0:  
@@ -144,7 +153,7 @@ def calc_angular_error(rot1, rot2):
     r2 = R.from_euler('ZYX', rot2)
     relative_rot = r1.inv() * r2
     angle = np.linalg.norm(relative_rot.as_rotvec())  
-    #return np.degrees(angle)  
+    
     return angle
 
 def generate_combined_plot(df, steps, angles_solides_tag, angles_solides_gt):
@@ -152,60 +161,90 @@ def generate_combined_plot(df, steps, angles_solides_tag, angles_solides_gt):
     fig, axs = plt.subplots(3, 2, figsize=(16, 18))
     
     # 1. Graphique de rotation pour l'axe X (tag et gripper)
-    axs[0, 0].plot(df.index, df['tag_rx'], 'o-', color='red', label='tag_rx')
-    axs[0, 0].plot(df.index, df['gripper_rx'], 'o-', color='green', label='gripper_rx')
-    axs[0, 0].set_title("Rotation X (en radians)")
+    axs[0, 0].plot(df.index, df['tag_rx'],  color='red', label='tag_rx')
+    axs[0, 0].plot(df.index, df['gripper_rx'],  color='green', label='gripper_rx')
+    axs[0, 0].set_title(f"Rotation X (en {unit_label})")
     axs[0, 0].set_xlabel("Time")
-    axs[0, 0].set_ylabel("Rotation (radians)")
+    axs[0, 0].set_ylabel(f"Rotation ({unit_label})")
     axs[0, 0].legend()
 
     # 2. Graphique de rotation pour l'axe Y (tag et gripper)
-    axs[1, 0].plot(df.index, df['tag_ry'], 'o-', color='red', label='tag_ry')
-    axs[1, 0].plot(df.index, df['gripper_ry'], 'o-', color='green', label='gripper_ry')
-    axs[1, 0].set_title("Rotation Y (en radians)")
+    axs[1, 0].plot(df.index, df['tag_ry'],  color='red', label='tag_ry')
+    axs[1, 0].plot(df.index, df['gripper_ry'],  color='green', label='gripper_ry')
+    axs[1, 0].set_title(f"Rotation Y (en {unit_label})")
     axs[1, 0].set_xlabel("Time")
-    axs[1, 0].set_ylabel("Rotation (radians)")
+    axs[1, 0].set_ylabel(f"Rotation ({unit_label})")
     axs[1, 0].legend()
 
     # 3. Graphique de rotation pour l'axe Z (tag et gripper)
-    axs[2, 0].plot(df.index, df['tag_rz'], 'o-', color='red', label='tag_rz')
-    axs[2, 0].plot(df.index, df['gripper_rz'], 'o-', color='green', label='gripper_rz')
-    axs[2, 0].set_title("Rotation Z (en radians)")
+    axs[2, 0].plot(df.index, df['tag_rz'],  color='red', label='tag_rz')
+    axs[2, 0].plot(df.index, df['gripper_rz'],  color='green', label='gripper_rz')
+    axs[2, 0].set_title(f"Rotation Z (en {unit_label})")
     axs[2, 0].set_xlabel("Time")
-    axs[2, 0].set_ylabel("Rotation (radians)")
+    axs[2, 0].set_ylabel(f"Rotation ({unit_label})")
     axs[2, 0].legend()
 
     # 4. Graphique de l'angle solide pour tag et gripper (comparaison entre eux)
-    axs[0, 1].plot(df.index, df['angleSolide'], 'o-', color='blue', label='tag/gripper angle solide')
+    axs[0, 1].plot(df.index, df['angleSolide'],  color='blue', label='tag/gripper angle solide')
     axs[0, 1].set_title("Angle solide (tag et gripper)")
     axs[0, 1].set_xlabel("Time")
-    axs[0, 1].set_ylabel("Angle solide (radians)")
+    axs[0, 1].set_ylabel(f"Angle solide ({unit_label})")
     axs[0, 1].legend()
 
     # 5. Graphique de l'angle solide entre n et n+1 pour le tag (utilise angles_solides_tag)
     axs[1, 1].plot(steps, angles_solides_tag, 'o-', color='purple', label='Angle solide entre n et n+1')
     axs[1, 1].set_title("Variation de l'Angle Solide entre Étapes Successives (Tag)")
     axs[1, 1].set_xlabel("Images")
-    axs[1, 1].set_ylabel("Angle solide (radians)")
+    axs[1, 1].set_ylabel(f"Angle solide ({unit_label})")
     axs[1, 1].legend()
 
     # 6. Graphique de l'angle solide entre n et n+1 pour le gripper (utilise angles_solides_gt)
     axs[2, 1].plot(steps, angles_solides_gt, 'o-', color='orange', label='Angle solide entre n et n+1')
     axs[2, 1].set_title("Variation de l'Angle Solide entre Étapes Successives (Gripper/Verité Terrain)")
     axs[2, 1].set_xlabel("Images")
-    axs[2, 1].set_ylabel("Angle solide (radians)")
+    axs[2, 1].set_ylabel(f"Angle solide ({unit_label})")
     axs[2, 1].legend()
 
     # Ajustement de l'espacement et sauvegarde de l'image
     plt.tight_layout()
     plt.savefig('combined_graphs.png')
-    plt.show()
     print("Les graphiques combinés ont été sauvegardés sous 'combined_graphs.png'.")
+
+def save_combined_errors_to_csv(df, output_file='combined_errors.csv'):
+    result_rows = []
+    for index, row in df.iterrows():
+        _,angleSolide, tag_erreur_rx, tag_erreur_ry, tag_erreur_rz = DOFErreur(row)
+        result_row = {
+            'image': row['image_file'],  # Assurez-vous que la colonne 'image' existe dans df
+            'gripper_rx': row['gripper_rx'],
+            'gripper_ry': row['gripper_ry'],
+            'gripper_rz': row['gripper_rz'],
+            'tag_erreur_rx': tag_erreur_rx,
+            'tag_erreur_ry': tag_erreur_ry,
+            'tag_erreur_rz': tag_erreur_rz,
+            'erreur_angle_solide': angleSolide
+        }
+        result_rows.append(result_row)
+
+    with open(output_file, mode='w', newline='') as file:
+        fieldnames = ['image', 'gripper_rx', 'gripper_ry', 'gripper_rz', 'tag_erreur_rx', 'tag_erreur_ry', 'tag_erreur_rz', 'erreur_angle_solide']
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(result_rows)
+    
+    print(f"Les erreurs combinées ont été sauvegardées dans {output_file}")
 
 input_file = 'merged_poses.csv'
 df = pd.read_csv(input_file)
 
 df[['E_3D', 'angleSolide', 'Erx', 'Ery', 'Erz']] = df.apply(lambda row: pd.Series(DOFErreur(row)), axis=1)
+
+if use_degrees:
+    df[['tag_rx', 'tag_ry', 'tag_rz', 'gripper_rx', 'gripper_ry', 'gripper_rz','angleSolide']] = np.degrees(df[['tag_rx', 'tag_ry', 'tag_rz', 'gripper_rx', 'gripper_ry', 'gripper_rz','angleSolide']])
+
 steps,translations_tag, angles_solides_tag, translations_gt,angles_solides_gt = process(input_file)
 save_solid_angles_to_csv(steps, translations_tag, angles_solides_tag, translations_gt,angles_solides_gt)
+
 generate_combined_plot(df, steps, angles_solides_tag, angles_solides_gt)
+
+save_combined_errors_to_csv(df)

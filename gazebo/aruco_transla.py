@@ -66,6 +66,10 @@ def spawn_box():
                 rospy.loginfo("Transformation received between world and xtion_rgb_optical_frame")
 
                 box_pose = Pose()
+                HTete=np.eye(4)
+                
+                HTete[0:3,0:3]= R.from_quat([transform.transform.rotation.x,transform.transform.rotation.y,transform.transform.rotation.z,transform.transform.rotation.w]).as_matrix()
+                HTete[0:3,3]  =[transform.transform.translation.x,transform.transform.translation.y,transform.transform.translation.z]
 
                 x_pose = initial_pose[0] + pose[0]
                 y_pose = initial_pose[1] + pose[1]
