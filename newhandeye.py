@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import matplotlib
 import random
 matplotlib.use('Agg')
+import pandas as pd
+import seaborn as sns
 
 
 class HandEyeCalibration:
@@ -64,7 +66,6 @@ class HandEyeCalibration:
         return all_R_base_cam, all_t_base_cam
 
     def calculate_estimated_heads(self):
-        # Calculer la transformation base -> caméra
         R_base_cam, t_base_cam = self.calculate_base_to_camera_transform()
 
         gripper_matrices = self.convert_to_transform_matrices(self.BaseTag)
@@ -79,8 +80,8 @@ class HandEyeCalibration:
             base_to_cam_transform[:3, 3] = t_base_cam[i]
 
             estimated_head = base_to_cam_transform
-            estimated_heads.append(estimated_head[:3, 3])  # Only translation part
-            real_heads.append(head_matrices[i][:3, 3])  # Only translation part
+            estimated_heads.append(estimated_head[:3, 3]) 
+            real_heads.append(head_matrices[i][:3, 3]) 
 
         self.estimated_heads = np.array(estimated_heads)
         self.real_heads = np.array(real_heads)
@@ -111,16 +112,13 @@ class HandEyeCalibration:
         best_t = None
 
         for _ in range(iterations):
-            # Sélectionner un échantillon aléatoire
             sample_indices = random.sample(range(len(R_base_cam)), 3)
             sampled_R = [R_base_cam[i] for i in sample_indices]
             sampled_t = [t_base_cam[i] for i in sample_indices]
 
-            # Calculer une estimation moyenne
             avg_R = np.mean(sampled_R, axis=0)
             avg_t = np.mean(sampled_t, axis=0)
 
-            # Compter les inliers
             inliers_count = 0
             for i in range(len(R_base_cam)):
                 diff_R = np.linalg.norm(R_base_cam[i] - avg_R)
@@ -128,19 +126,56 @@ class HandEyeCalibration:
                 if diff_R < threshold and diff_t < threshold:
                     inliers_count += 1
 
-            # Mettre à jour si on trouve une meilleure estimation
             if inliers_count > best_inliers_count:
                 best_inliers_count = inliers_count
                 best_R = avg_R
                 best_t = avg_t
 
         return np.flip(R.from_matrix(best_R).as_euler('ZYX')), best_t
+    
+    def generate_final_comparison(self, best_R, best_t):
+        mean_real_t = np.mean(self.real_heads, axis=0)
+        mean_real_R = np.mean([R.from_matrix(T[:3, :3]).as_euler('ZYX') for T in self.convert_to_transform_matrices(self.head_positions)], axis=0)
+
+        ransac_t = np.array(best_t)
+        ransac_R = np.array(best_R)
+
+        diff_t = mean_real_t - ransac_t
+        diff_R = mean_real_R - ransac_R
+
+        data = {
+            'Vérité terrain (Translation)': mean_real_t,
+            'RANSAC (Translation)': ransac_t,
+            'Différence (Translation)': diff_t,
+            'Vérité terrain (Rotation)': mean_real_R,
+            'RANSAC (Rotation)': ransac_R,
+            'Différence (Rotation)': diff_R
+        }
+
+        df = pd.DataFrame(data, index=['X', 'Y', 'Z'])
+        df.to_csv('final_comparison_table.csv')
+        print(df)
+
+        fig, ax = plt.subplots(figsize=(16, 3))
+        ax.axis('off')
+        table = ax.table(cellText=df.values, colLabels=df.columns, rowLabels=df.index, cellLoc='center', loc='center')
+        table.auto_set_font_size(False)
+        table.set_fontsize(14)
+        table.scale(1.5, 1.8)  
+        plt.title('Comparaison Finale des Valeurs de Translation et de Rotation')
+        plt.savefig('final_comparison_table.png', dpi=300, bbox_inches='tight')
+        plt.close()
+
+
+
+
 
 if __name__ == "__main__":
-    csv_filename = "handeye.csv"  # Remplacez par le chemin vers votre fichier CSV
+    csv_filename = "handeye.csv"
     handeye = HandEyeCalibration(csv_filename)
     handeye.calculate_estimated_heads()
     handeye.plot_comparison()
     best_R, best_t = handeye.ransac_for_base_to_camera()
     print("Meilleure estimation de R (Base -> Caméra):\n", best_R)
     print("Meilleure estimation de t (Base -> Caméra):\n", best_t)
+    handeye.generate_final_comparison(best_R,best_t)
