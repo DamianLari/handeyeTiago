@@ -157,58 +157,81 @@ def calc_angular_error(rot1, rot2):
     return angle
 
 def generate_combined_plot(df, steps, angles_solides_tag, angles_solides_gt):
-    # Création de la figure avec 3 lignes et 2 colonnes pour les six graphiques
-    fig, axs = plt.subplots(3, 2, figsize=(16, 18))
+    # Création de la figure avec 3 lignes et 3 colonnes pour les neuf graphiques
+    fig, axs = plt.subplots(3, 3, figsize=(18, 18))
     
     # 1. Graphique de rotation pour l'axe X (tag et gripper)
-    axs[0, 0].plot(df.index, df['tag_rx'],  color='red', label='tag_rx')
-    axs[0, 0].plot(df.index, df['gripper_rx'],  color='green', label='gripper_rx')
+    axs[0, 0].plot(df.index, df['tag_rx'], color='red', label='tag_rx')
+    axs[0, 0].plot(df.index, df['gripper_rx'], color='green', label='gripper_rx')
     axs[0, 0].set_title(f"Rotation X (en {unit_label})")
-    axs[0, 0].set_xlabel("Time")
+    axs[0, 0].set_xlabel("Images")
     axs[0, 0].set_ylabel(f"Rotation ({unit_label})")
     axs[0, 0].legend()
 
-    # 2. Graphique de rotation pour l'axe Y (tag et gripper)
-    axs[1, 0].plot(df.index, df['tag_ry'],  color='red', label='tag_ry')
-    axs[1, 0].plot(df.index, df['gripper_ry'],  color='green', label='gripper_ry')
+    # 2. Graphique de différence de rotation pour l'axe X
+    axs[0, 1].plot(df.index, df['diff_rx'], color='red', label='Différence RX (tag - gripper)')
+    axs[0, 1].set_title(f"Différence de Rotation X (en {unit_label})")
+    axs[0, 1].set_xlabel("Images")
+    axs[0, 1].set_ylabel(f"Différence Rotation ({unit_label})")
+    axs[0, 1].axhline(0, color='black', linestyle='--')  # Ligne de référence à 0
+    axs[0, 1].legend()
+
+    # 3. Graphique de rotation pour l'axe Y (tag et gripper)
+    axs[1, 0].plot(df.index, df['tag_ry'], color='red', label='tag_ry')
+    axs[1, 0].plot(df.index, df['gripper_ry'], color='green', label='gripper_ry')
     axs[1, 0].set_title(f"Rotation Y (en {unit_label})")
-    axs[1, 0].set_xlabel("Time")
+    axs[1, 0].set_xlabel("Images")
     axs[1, 0].set_ylabel(f"Rotation ({unit_label})")
     axs[1, 0].legend()
 
-    # 3. Graphique de rotation pour l'axe Z (tag et gripper)
-    axs[2, 0].plot(df.index, df['tag_rz'],  color='red', label='tag_rz')
-    axs[2, 0].plot(df.index, df['gripper_rz'],  color='green', label='gripper_rz')
+    # 4. Graphique de différence de rotation pour l'axe Y
+    axs[1, 1].plot(df.index, df['diff_ry'], color='green', label='Différence RY (tag - gripper)')
+    axs[1, 1].set_title(f"Différence de Rotation Y (en {unit_label})")
+    axs[1, 1].set_xlabel("Images")
+    axs[1, 1].set_ylabel(f"Différence Rotation ({unit_label})")
+    axs[1, 1].axhline(0, color='black', linestyle='--')  # Ligne de référence à 0
+    axs[1, 1].legend()
+
+    # 5. Graphique de rotation pour l'axe Z (tag et gripper)
+    axs[2, 0].plot(df.index, df['tag_rz'], color='red', label='tag_rz')
+    axs[2, 0].plot(df.index, df['gripper_rz'], color='green', label='gripper_rz')
     axs[2, 0].set_title(f"Rotation Z (en {unit_label})")
-    axs[2, 0].set_xlabel("Time")
+    axs[2, 0].set_xlabel("Images")
     axs[2, 0].set_ylabel(f"Rotation ({unit_label})")
     axs[2, 0].legend()
 
-    # 4. Graphique de l'angle solide pour tag et gripper (comparaison entre eux)
-    axs[0, 1].plot(df.index, df['angleSolide'],  color='blue', label='tag/gripper angle solide')
-    axs[0, 1].set_title("Angle solide (tag et gripper)")
-    axs[0, 1].set_xlabel("Time")
-    axs[0, 1].set_ylabel(f"Angle solide ({unit_label})")
-    axs[0, 1].legend()
-
-    # 5. Graphique de l'angle solide entre n et n+1 pour le tag (utilise angles_solides_tag)
-    axs[1, 1].plot(steps, angles_solides_tag, 'o-', color='purple', label='Angle solide entre n et n+1')
-    axs[1, 1].set_title("Variation de l'Angle Solide entre Étapes Successives (Tag)")
-    axs[1, 1].set_xlabel("Images")
-    axs[1, 1].set_ylabel(f"Angle solide ({unit_label})")
-    axs[1, 1].legend()
-
-    # 6. Graphique de l'angle solide entre n et n+1 pour le gripper (utilise angles_solides_gt)
-    axs[2, 1].plot(steps, angles_solides_gt, 'o-', color='orange', label='Angle solide entre n et n+1')
-    axs[2, 1].set_title("Variation de l'Angle Solide entre Étapes Successives (Gripper/Verité Terrain)")
+    # 6. Graphique de différence de rotation pour l'axe Z
+    axs[2, 1].plot(df.index, df['diff_rz'], color='blue', label='Différence RZ (tag - gripper)')
+    axs[2, 1].set_title(f"Différence de Rotation Z (en {unit_label})")
     axs[2, 1].set_xlabel("Images")
-    axs[2, 1].set_ylabel(f"Angle solide ({unit_label})")
+    axs[2, 1].set_ylabel(f"Différence Rotation ({unit_label})")
+    axs[2, 1].axhline(0, color='black', linestyle='--')  # Ligne de référence à 0
     axs[2, 1].legend()
+
+    # 7-9. Graphiques des angles solides (tag et gripper)
+    axs[0, 2].plot(df.index, df['angleSolide'], color='blue', label='tag/gripper angle solide')
+    axs[0, 2].set_title("Angle Solide entre Tag et Gripper")
+    axs[0, 2].set_xlabel("Images")
+    axs[0, 2].set_ylabel(f"Angle solide ({unit_label})")
+    axs[0, 2].legend()
+
+    axs[1, 2].plot(steps, angles_solides_gt, 'o-', color='orange', label='Angle solide (Gripper/Verité Terrain)')
+    axs[1, 2].set_title("Variation de l'Angle Solide entre Étapes Successives (Gripper)")
+    axs[1, 2].set_xlabel("Images")
+    axs[1, 2].set_ylabel(f"Angle solide ({unit_label})")
+    axs[1, 2].legend()
+
+    axs[2, 2].plot(steps, angles_solides_tag, 'o-', color='purple', label='Angle solide (Tag)')
+    axs[2, 2].set_title("Variation de l'Angle Solide entre Étapes Successives (Tag)")
+    axs[2, 2].set_xlabel("Images")
+    axs[2, 2].set_ylabel(f"Angle solide ({unit_label})")
+    axs[2, 2].legend()
 
     # Ajustement de l'espacement et sauvegarde de l'image
     plt.tight_layout()
     plt.savefig('combined_graphs.png')
     print("Les graphiques combinés ont été sauvegardés sous 'combined_graphs.png'.")
+
 
 def save_combined_errors_to_csv(df, output_file='combined_errors.csv'):
     result_rows = []
@@ -241,6 +264,10 @@ df[['E_3D', 'angleSolide', 'Erx', 'Ery', 'Erz']] = df.apply(lambda row: pd.Serie
 
 if use_degrees:
     df[['tag_rx', 'tag_ry', 'tag_rz', 'gripper_rx', 'gripper_ry', 'gripper_rz','angleSolide']] = np.degrees(df[['tag_rx', 'tag_ry', 'tag_rz', 'gripper_rx', 'gripper_ry', 'gripper_rz','angleSolide']])
+
+df['diff_rx'] = df['tag_rx'] - df['gripper_rx']
+df['diff_ry'] = df['tag_ry'] - df['gripper_ry']
+df['diff_rz'] = df['tag_rz'] - df['gripper_rz']
 
 steps,translations_tag, angles_solides_tag, translations_gt,angles_solides_gt = process(input_file)
 save_solid_angles_to_csv(steps, translations_tag, angles_solides_tag, translations_gt,angles_solides_gt)

@@ -94,26 +94,34 @@ def spawn_box():
             [0, 0, np.pi]        # Yaw 180°
         ]
         """
-        aruco_rota_list = [
-            [0, 0, 0],                  # No rotation
-            [np.pi/18, np.pi/18, np.pi/18],    # 10° on all axes
-            [2*np.pi/18, 2*np.pi/18, 2*np.pi/18],  # 20° on all axes
-            [3*np.pi/18, 3*np.pi/18, 3*np.pi/18],  # 30° on all axes
-            [4*np.pi/18, 4*np.pi/18, 4*np.pi/18],  # 40° on all axes
-            [5*np.pi/18, 5*np.pi/18, 5*np.pi/18],  # 50° on all axes
-            [6*np.pi/18, 6*np.pi/18, 6*np.pi/18],  # 60° on all axes
-            [7*np.pi/18, 7*np.pi/18, 7*np.pi/18],  # 70° on all axes
-            [8*np.pi/18, 8*np.pi/18, 8*np.pi/18],  # 80° on all axes
-            [9*np.pi/18, 9*np.pi/18, 9*np.pi/18],  # 90° on all axes
-            [10*np.pi/18, 10*np.pi/18, 10*np.pi/18], # 100° on all axes
-            [11*np.pi/18, 11*np.pi/18, 11*np.pi/18], # 110° on all axes
-            [12*np.pi/18, 12*np.pi/18, 12*np.pi/18], # 120° on all axes
-            [13*np.pi/18, 13*np.pi/18, 13*np.pi/18], # 130° on all axes
-            [14*np.pi/18, 14*np.pi/18, 14*np.pi/18], # 140° on all axes
-            [15*np.pi/18, 15*np.pi/18, 15*np.pi/18], # 150° on all axes
-            [16*np.pi/18, 16*np.pi/18, 16*np.pi/18], # 160° on all axes
-            [17*np.pi/18, 17*np.pi/18, 17*np.pi/18], # 170° on all axes
-            [np.pi, np.pi, np.pi]       # 180° on all axes
+        aruco_pose_list = [
+            [0, 0, 2, 0, 0, 0],                        # No translation, no rotation
+            [0, 0, 2.5, np.pi/18, np.pi/18, np.pi/18],   # Translation in X and 10° rotation on all axes
+            [0, 0, 3, 2*np.pi/18, 2*np.pi/18, 2*np.pi/18], # Translation in X and 20° rotation on all axes
+            [0, 0, -2.5, 3*np.pi/18, 3*np.pi/18, 3*np.pi/18], # Translation in -X and 30° rotation on all axes
+            [0, 0.5, 2, 4*np.pi/18, 4*np.pi/18, 4*np.pi/18], # Translation in Y and 40° rotation on all axes
+            [0, -0.75, 2, 5*np.pi/18, 5*np.pi/18, 5*np.pi/18], # Translation in -Y and 50° rotation on all axes
+            [0.5, 0, 2, 6*np.pi/18, 6*np.pi/18, 6*np.pi/18], # Translation in Z and 60° rotation on all axes
+            [-1, 0, 2, 7*np.pi/18, 7*np.pi/18, 7*np.pi/18], # Translation in -Z and 70° rotation on all axes
+            [0, 1, 3, 8*np.pi/18, 8*np.pi/18, 8*np.pi/18], # Translation in X and Y and 80° rotation on all axes
+            [1, -1, -3, 9*np.pi/18, 9*np.pi/18, 9*np.pi/18], # Translation in -X, -Y, Z and 90° rotation on all axes
+            [-1, 1.5, 5, 10*np.pi/18, 10*np.pi/18, 10*np.pi/18], # Translation with larger X, Y, and Z, and 100° rotation on all axes
+            [1, -1.5, 4, 11*np.pi/18, 11*np.pi/18, 11*np.pi/18], # Translation in mixed directions with 110° rotation
+            [-1.5, 0, 6, 12*np.pi/18, 12*np.pi/18, 12*np.pi/18], # Max X and Z translations with 120° rotation
+            [1.5, -2, 0.5, 13*np.pi/18, 13*np.pi/18, 13*np.pi/18], # Min X, Y, and max Z translations with 130° rotation
+            [-1, 2, 3.5, 14*np.pi/18, 14*np.pi/18, 14*np.pi/18], # Translation in all positive directions with 140° rotation
+            [0.5, -2, 5.5, 15*np.pi/18, 15*np.pi/18, 15*np.pi/18], # Mixed translations with 150° rotation
+            [1, 1, 1, 16*np.pi/18, 16*np.pi/18, 16*np.pi/18], # Translation of 1 unit in all axes with 160° rotation
+            [-1, -1, 2, 17*np.pi/18, 17*np.pi/18, 17*np.pi/18], # Translation in negative Y and Z with 170° rotation
+            [1, 0, 4, np.pi, np.pi, np.pi], # Rotation of 180° on all axes
+            [-0.5, 1, 0.5, np.pi/3, np.pi/4, np.pi/6], # Complex mixed translation and rotation
+            [1.2, -1.5, 5, np.pi/2, np.pi/3, np.pi/4], # Translation with half rotations on each axis
+            [-0.8, 0.8, 3, np.pi/5, np.pi/7, np.pi/9], # Diverse rotation angles with mixed translations
+            [-1.5, 2, 6, 2*np.pi/3, np.pi/2, np.pi/8], # Max translations with varying rotations
+            [1.3, -1.8, 4.5, np.pi/4, np.pi/6, 3*np.pi/8], # Larger translation with fractional rotations
+            [1.4, -0.9, 0.6, np.pi/3, np.pi/5, np.pi/7], # Small translations with specific rotation steps
+            [-1.1, 1.7, 5.8, 5*np.pi/18, 4*np.pi/18, 3*np.pi/18], # High translation with moderate rotations
+            [1.8, -1.3, 2.2, 7*np.pi/18, 6*np.pi/18, 5*np.pi/18] # Varied translation and rotation angles
         ]
         """
         aruco_rota_list = [
@@ -150,7 +158,7 @@ def spawn_box():
         rate_1 = rospy.Rate(1)
         rate_4 = rospy.Rate(0.25)
         rospy.loginfo("Phase 2 : Rotation uniquement")
-        for idx, rota in enumerate(aruco_rota_list):
+        for idx, pose in enumerate(aruco_pose_list):
             try:
                 transform: TransformStamped = tf_buffer.lookup_transform('map', 'xtion_rgb_optical_frame', rospy.Time(0), rospy.Duration(5.0))
                 rospy.loginfo("Transformation received between world and xtion_rgb_optical_frame")
@@ -164,13 +172,13 @@ def spawn_box():
                 Rot_perpendiculaire=np.eye(3)
                 Rot_perpendiculaire= R.from_euler("ZYX",[-math.pi/2,math.pi,0],degrees=False).as_matrix()
                 #Rot_perpendiculaire= R.from_euler("ZYX",[0,0,0],degrees=False).as_matrix()
-                Rot_wanted=R.from_euler("ZYX",[rota[2],rota[1],rota[0]],degrees=False).as_matrix()
+                Rot_wanted=R.from_euler("ZYX",[pose[5],pose[4],pose[3]],degrees=False).as_matrix()
 
                 Rotation_Aruco=np.eye(4)
                 Rotation_Aruco[0:3,0:3]=Rot_wanted.dot(Rot_perpendiculaire)
 
                 Translation_Aruco=np.eye(4)
-                Translation_Aruco[0:3,3]=initial_pose
+                Translation_Aruco[0:3,3]=np.array(initial_pose[:3]) + np.array(pose[:3])
 
                 Rot_wanted_4x4 = np.eye(4)
                 Rot_wanted_4x4[:3, :3] = Rot_wanted

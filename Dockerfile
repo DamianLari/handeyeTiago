@@ -37,3 +37,5 @@ CMD ["terminator"]
 #RUN apt-get update
 
 #RUN apt-get install -y build-essential sudo terminator iproute2 gedit lsb-release lsb-core wget nano python
+
+#docker run -it -e DISPLAY=host.docker.internal:0 -v /c/handeyeTiago:/root --network=host tiago_handeye

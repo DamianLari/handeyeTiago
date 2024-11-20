@@ -145,10 +145,6 @@ class TagPoseProvider:
 
         return os.path.join(grandparent_directory_path, file_name)
 
-
-
-
-    
     
     def correct_image(self,image):
         #================================
@@ -207,7 +203,6 @@ class TagPoseProvider:
         
         if ids is not None:
             ids = [id[0] for id in ids]
-
 
             try:
                 rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, self.aruco_size, self.mtx,np.array([0,0,0,0,0]))

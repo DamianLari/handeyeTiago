@@ -32,92 +32,17 @@ def spawn_box():
         
         tf_buffer = tf2_ros.Buffer()
         tf_listener = tf2_ros.TransformListener(tf_buffer)
-        aruco_rota_list = [
-            [0, 0, 0],           # No rotation
-            # Roll variations
-            [np.pi/18, 0, 0],    # Roll 10°
-            [2*np.pi/18, 0, 0],  # Roll 20°
-            [3*np.pi/18, 0, 0],  # Roll 30°
-            [4*np.pi/18, 0, 0],  # Roll 40°
-            [5*np.pi/18, 0, 0],  # Roll 50°
-            [6*np.pi/18, 0, 0],  # Roll 60°
-            [7*np.pi/18, 0, 0],  # Roll 70°
-            [8*np.pi/18, 0, 0],  # Roll 80°
-            [9*np.pi/18, 0, 0],  # Roll 90°
-            [10*np.pi/18, 0, 0], # Roll 100°
-            [11*np.pi/18, 0, 0], # Roll 110°
-            [12*np.pi/18, 0, 0], # Roll 120°
-            [13*np.pi/18, 0, 0], # Roll 130°
-            [14*np.pi/18, 0, 0], # Roll 140°
-            [15*np.pi/18, 0, 0], # Roll 150°
-            [16*np.pi/18, 0, 0], # Roll 160°
-            [17*np.pi/18, 0, 0], # Roll 170°
-            [np.pi, 0, 0],       # Roll 180°
-            # Pitch variations
-            [0, np.pi/18, 0],    # Pitch 10°
-            [0, 2*np.pi/18, 0],  # Pitch 20°
-            [0, 3*np.pi/18, 0],  # Pitch 30°
-            [0, 4*np.pi/18, 0],  # Pitch 40°
-            [0, 5*np.pi/18, 0],  # Pitch 50°
-            [0, 6*np.pi/18, 0],  # Pitch 60°
-            [0, 7*np.pi/18, 0],  # Pitch 70°
-            [0, 8*np.pi/18, 0],  # Pitch 80°
-            [0, 9*np.pi/18, 0],  # Pitch 90°
-            [0, 10*np.pi/18, 0], # Pitch 100°
-            [0, 11*np.pi/18, 0], # Pitch 110°
-            [0, 12*np.pi/18, 0], # Pitch 120°
-            [0, 13*np.pi/18, 0], # Pitch 130°
-            [0, 14*np.pi/18, 0], # Pitch 140°
-            [0, 15*np.pi/18, 0], # Pitch 150°
-            [0, 16*np.pi/18, 0], # Pitch 160°
-            [0, 17*np.pi/18, 0], # Pitch 170°
-            [0, np.pi, 0],       # Pitch 180°
-            # Yaw variations
-            [0, 0, np.pi/18],    # Yaw 10°
-            [0, 0, 2*np.pi/18],  # Yaw 20°
-            [0, 0, 3*np.pi/18],  # Yaw 30°
-            [0, 0, 4*np.pi/18],  # Yaw 40°
-            [0, 0, 5*np.pi/18],  # Yaw 50°
-            [0, 0, 6*np.pi/18],  # Yaw 60°
-            [0, 0, 7*np.pi/18],  # Yaw 70°
-            [0, 0, 8*np.pi/18],  # Yaw 80°
-            [0, 0, 9*np.pi/18],  # Yaw 90°
-            [0, 0, 10*np.pi/18], # Yaw 100°
-            [0, 0, 11*np.pi/18], # Yaw 110°
-            [0, 0, 12*np.pi/18], # Yaw 120°
-            [0, 0, 13*np.pi/18], # Yaw 130°
-            [0, 0, 14*np.pi/18], # Yaw 140°
-            [0, 0, 15*np.pi/18], # Yaw 150°
-            [0, 0, 16*np.pi/18], # Yaw 160°
-            [0, 0, 17*np.pi/18], # Yaw 170°
-            [0, 0, np.pi]        # Yaw 180°
-        ]
+        aruco_transla_list = []
 
-        """
-        aruco_rota_list = [
-            [0, 0, 0],
-            [np.pi/6, np.pi/6, 0],       # Roll 30° and Pitch 30°
-            [np.pi/4, 0, np.pi/4],       # Roll 45° and Yaw 45°
-            [0, np.pi/6, np.pi/6],       # Pitch 30° and Yaw 30°
-            [-np.pi/4, np.pi/4, 0],      # Roll -45° and Pitch 45°
-            [0, -np.pi/6, np.pi/4],      # Pitch -30° and Yaw 45°
-            [np.pi/3, np.pi/3, np.pi/3], # Roll 60°, Pitch 60°, and Yaw 60°
-            [-np.pi/4, -np.pi/4, -np.pi/4],  # Roll -45°, Pitch -45°, Yaw -45°
-            [np.pi/6, np.pi/6, np.pi/6], # Roll 30°, Pitch 30°, Yaw 30°
-            [-np.pi/3, np.pi/6, np.pi/4],# Roll -60°, Pitch 30°, Yaw 45°
-            [np.pi/4, -np.pi/6, np.pi/4],# Roll 45°, Pitch -30°, Yaw 45°
-            [-np.pi/6, np.pi/6, np.pi/3],# Roll -30°, Pitch 30°, Yaw 60°
-            [np.pi/4, np.pi/3, -np.pi/4],# Roll 45°, Pitch 60°, Yaw -45°
-            [-np.pi/4, np.pi/4, np.pi/2],# Roll -45°, Pitch 45°, Yaw 90°
-            [np.pi/6, -np.pi/4, np.pi/3],# Roll 30°, Pitch -45°, Yaw 60°
-            [np.pi/3, -np.pi/6, -np.pi/4], # Roll 60°, Pitch -30°, Yaw -45°
-            [np.pi/4, np.pi/4, np.pi/4],  # Roll 45°, Pitch 45°, Yaw 45°
-            [-np.pi/6, -np.pi/4, np.pi/6],# Roll -30°, Pitch -45°, Yaw 30°
-            [np.pi/3, -np.pi/3, np.pi/6], # Roll 60°, Pitch -60°, Yaw 30°
-            [-np.pi/6, np.pi/3, -np.pi/3],# Roll -30°, Pitch 60°, Yaw -60°
-            [np.pi/4, -np.pi/3, np.pi/3], # Roll 45°, Pitch -60°, Yaw 60°
-        ]
-        """
+        for x in range(-4, 4):
+            aruco_transla_list.append([x * 0.5, 0, 0])  
+
+        for y in range(-4, 4):
+            aruco_transla_list.append([0, y * 0.3, 0])  
+
+        for z in range(0,21):
+            aruco_transla_list.append([0, 0, z * 0.5]) 
+
 
         initial_pose = [0, 0, 2]
         quaternion_180z = tft.quaternion_from_euler(0, 0, 3.14159) 
@@ -128,7 +53,7 @@ def spawn_box():
         rate_1 = rospy.Rate(1)
         rate_4 = rospy.Rate(0.25)
         rospy.loginfo("Phase 2 : Rotation uniquement")
-        for idx, rota in enumerate(aruco_rota_list):
+        for idx, transla in enumerate(aruco_transla_list):
             try:
                 transform: TransformStamped = tf_buffer.lookup_transform('map', 'xtion_rgb_optical_frame', rospy.Time(0), rospy.Duration(5.0))
                 rospy.loginfo("Transformation received between world and xtion_rgb_optical_frame")
@@ -141,14 +66,13 @@ def spawn_box():
 
                 Rot_perpendiculaire=np.eye(3)
                 Rot_perpendiculaire= R.from_euler("ZYX",[-math.pi/2,math.pi,0],degrees=False).as_matrix()
-                #Rot_perpendiculaire= R.from_euler("ZYX",[0,0,0],degrees=False).as_matrix()
-                Rot_wanted=R.from_euler("ZYX",[rota[2],rota[1],rota[0]],degrees=False).as_matrix()
+                Rot_wanted=R.from_euler("ZYX",[0,0,0],degrees=False).as_matrix()
 
                 Rotation_Aruco=np.eye(4)
                 Rotation_Aruco[0:3,0:3]=Rot_wanted.dot(Rot_perpendiculaire)
 
                 Translation_Aruco=np.eye(4)
-                Translation_Aruco[0:3,3]=initial_pose
+                Translation_Aruco[0:3, 3] = np.array(initial_pose[:3]) + np.array(transla[:3])
 
                 Rot_wanted_4x4 = np.eye(4)
                 Rot_wanted_4x4[:3, :3] = Rot_wanted
@@ -180,7 +104,8 @@ def spawn_box():
                 
                 #combined_euler = tft.euler_from_quaternion(combined_quaternion)
                 #publish_pose(pose_pub, Hworld[0,3],Hworld[1,3],Hworld[2,3],*combined_euler)
-                publish_pose(pose_pub, initial_pose[0],initial_pose[1],initial_pose[2],*arucoCamEulerAngle)
+                #publish_pose(pose_pub, initial_pose[0],initial_pose[1],initial_pose[2],*arucoCamEulerAngle)
+                publish_pose(pose_pub, *(np.array(initial_pose[:3]) + np.array(transla[:3])),*arucoCamEulerAngle)
                 rate_1.sleep()
 
                 model_name = f'aruco_model_rotation_{idx}'

@@ -119,7 +119,7 @@ with open(csv_filename, 'a', newline='') as csvfile:
 
             undistord_image = tag_detection_provider.correct_image(image)
             #undistord_image = image
-            corners, ids, rvecs, tvecs = tag_detection_provider.detect_marker(undistord_image, 'aruco', 0.18, 'DICT_4X4_100')
+            corners, ids, rvecs, tvecs = tag_detection_provider.detect_marker(undistord_image, 'aruco', 0.175, 'DICT_4X4_100')
             if ids is not None:
                 #ids, rota, tvecs_camera = tag_detection_provider.calculate_positions_in_camera_frame(ids, rvecs, tvecs)
                 
@@ -127,8 +127,8 @@ with open(csv_filename, 'a', newline='') as csvfile:
                     if tag_id is None or ids[i] == tag_id:
                         rvec = rvecs[i]
                         tvec = tvecs[i]
-
                         corner_pts = corners[i].reshape(-1, 2)  
+
                         for j, corner in enumerate(corner_pts):
                             corner = tuple(corner.astype(int))
                             cv2.circle(undistord_image, corner, 1, (0, 0, 255), -1) 
@@ -177,8 +177,8 @@ with open(csv_filename, 'a', newline='') as csvfile:
                             'tag_id': ids[i],
                             'tx': tvec[0][0], 'ty': tvec[0][1], 'tz': tvec[0][2],
                             #'tx': gripper_position_camera[0][0], 'ty': gripper_position_camera[1][0], 'tz': gripper_position_camera[2][0],
-                            'rx': arucoOffset[0], 'ry': arucoOffset[1], 'rz': arucoOffset[2],
-                            #'rx': rpy[0][0], 'ry': rpy[0][1], 'rz': rpy[0][2],
+                            #'rx': arucoOffset[0], 'ry': arucoOffset[1], 'rz': arucoOffset[2],
+                            'rx': rpy[0][0], 'ry': rpy[0][1], 'rz': rpy[0][2],
                             #'rx': gripper_rotation_camera[0][0], 'ry': gripper_rotation_camera[1][0], 'rz': gripper_rotation_camera[2][0]
                         })
 
