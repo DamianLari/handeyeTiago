@@ -113,10 +113,13 @@ class HandEyeCalibration:
 
         for _ in range(iterations):
             sample_indices = random.sample(range(len(R_base_cam)), 3)
-            sampled_R = [R_base_cam[i] for i in sample_indices]
+            #sampled_R = [R_base_cam[i] for i in sample_indices]
+            sampled_R_YPR=[np.flip(R_base_cam[i]) for i in sample_indices]
             sampled_t = [t_base_cam[i] for i in sample_indices]
 
-            avg_R = np.mean(sampled_R, axis=0)
+            #avg_R = np.mean(sampled_R, axis=0)
+            avg_R = np.flip(sampled_R_YPR.mean().as_euler('ZYX',degrees=False ))
+            
             avg_t = np.mean(sampled_t, axis=0)
 
             inliers_count = 0
