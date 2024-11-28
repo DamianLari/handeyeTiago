@@ -113,7 +113,7 @@ class HandEyeCalibration:
 
         for _ in range(iterations):
             sample_indices = random.sample(range(len(R_base_cam)), 3)
-            #sampled_R = [R_base_cam[i] for i in sample_indices]
+            sampled_R = [R_base_cam[i] for i in sample_indices]
             sampled_R_YPR=[np.flip(R_base_cam[i]) for i in sample_indices]
             sampled_t = [t_base_cam[i] for i in sample_indices]
 
