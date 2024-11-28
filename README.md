@@ -1,7 +1,7 @@
 # HandEye Calibration pour Transformation Tête/Base
-Article en cours d'écriture
-Le dernier rapport écrit date du 07/11/24 et est dicponible [ici](Rapport07_11_24.pdf)
 
+Le dernier rapport écrit (uniquement sur la precision de la detection d'aruco) date du 07/11/24 et est dicponible [ici](Rapport07_11_24.pdf)
+Article en cours d'écriture. Celui-ci portera uniquement sur le handeye.
 
 
 ## Aperçu
