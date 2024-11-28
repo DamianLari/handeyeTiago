@@ -38,7 +38,6 @@ class MergePose:
         # Fusion des poses
         merged_poses = {}
         for image_file, gripper_pose in gripper_poses.items():
-            # Debugging : vérifier si chaque image du gripper a une correspondance dans les tags
             image_name_no_ext, ext = os.path.splitext(image_file)
             if image_file in tag_poses:
                 tag_pose = tag_poses[image_file]

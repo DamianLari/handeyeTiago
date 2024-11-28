@@ -62,10 +62,9 @@ def generate_sdf(filename, square_size, num_squares):
 
     with open(filename, 'w') as f:
         f.write(sdf_header)
-
-        # Générer le quadrillage
+        
         index = 1
-        half_size = (square_size * (num_squares - 1)) / 2  #centrer le quadrillage
+        half_size = (square_size * (num_squares - 1)) / 2  
         for i in range(num_squares):
             for j in range(num_squares):
                 x = -half_size + i * square_size
@@ -78,12 +77,10 @@ def generate_sdf(filename, square_size, num_squares):
 def generate_grid_image(num_squares, square_size, image_filename):
     fig, ax = plt.subplots()
     
-    # Dessiner un quadrillage
     for i in range(num_squares + 1):
         ax.plot([0, num_squares], [i, i], color='black')
         ax.plot([i, i], [0, num_squares], color='black') 
 
-    # Ajouter les IDs dans chaque carré
     index = 1
     for i in range(num_squares):
         for j in range(num_squares):
@@ -91,7 +88,6 @@ def generate_grid_image(num_squares, square_size, image_filename):
                     va='center', ha='center')
             index += 1
 
-    # Ajuster les paramètres du graphique
     ax.set_xlim(0, num_squares)
     ax.set_ylim(0, num_squares)
     ax.set_xticks([])
@@ -99,12 +95,9 @@ def generate_grid_image(num_squares, square_size, image_filename):
     ax.set_aspect('equal')
     ax.set_title(f'Quadrillage de {num_squares} carrés de cotés avec IDs')
 
-    # Sauvegarder l'image
     plt.savefig(image_filename)
     
 
-# Utilisation du script pour générer le fichier SDF
 generate_sdf('aruco2.urdf', square_size=0.03, num_squares=10)
 
-# Générer une image du quadrillage avec les IDs
 generate_grid_image(num_squares=10, square_size=0.03, image_filename='aruco_grid.png')
