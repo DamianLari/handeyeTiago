@@ -86,6 +86,14 @@ class HandEyeCalibration:
         self.estimated_heads = np.array(estimated_heads)
         self.real_heads = np.array(real_heads)
     
+    def calc_angular_error(self, rot1, rot2):
+        r1 = R.from_euler('ZYX', rot1)
+        r2 = R.from_euler('ZYX', rot2)
+        relative_rot = r1.inv() * r2
+        angle = np.linalg.norm(relative_rot.as_rotvec())  
+        
+        return angle
+
     def plot_comparison(self):
         if self.estimated_heads is None or self.real_heads is None:
             raise ValueError("Les données estimées et réelles ne sont pas disponibles. Veuillez exécuter 'calculate_estimated_heads()' d'abord.")
@@ -113,18 +121,18 @@ class HandEyeCalibration:
 
         for _ in range(iterations):
             sample_indices = random.sample(range(len(R_base_cam)), 3)
-            sampled_R = [R_base_cam[i] for i in sample_indices]
-            sampled_R_YPR=[np.flip(R_base_cam[i]) for i in sample_indices]
+            sampled_R = [R.from_matrix(R_base_cam[i]).as_euler('ZYX') for i in sample_indices]
+            sampled_R_YPR=[R.from_matrix(R_base_cam[i]).as_euler('ZYX') for i in sample_indices]
             sampled_t = [t_base_cam[i] for i in sample_indices]
-
-            #avg_R = np.mean(sampled_R, axis=0)
-            avg_R = np.flip(sampled_R_YPR.mean().as_euler('ZYX',degrees=False ))
             
+            #avg_R = np.mean(sampled_R, axis=0)
+            
+            avg_R = [np.mean([sampled_R_YPR[0][i], sampled_R_YPR[1][i], sampled_R_YPR[2][i]]) for i in range(3)]
             avg_t = np.mean(sampled_t, axis=0)
 
             inliers_count = 0
             for i in range(len(R_base_cam)):
-                diff_R = np.linalg.norm(R_base_cam[i] - avg_R)
+                diff_R = self.calc_angular_error(R.from_matrix(R_base_cam[i]).as_euler('ZYX'), avg_R)
                 diff_t = np.linalg.norm(t_base_cam[i] - avg_t)
                 if diff_R < threshold and diff_t < threshold:
                     inliers_count += 1
@@ -134,7 +142,95 @@ class HandEyeCalibration:
                 best_R = avg_R
                 best_t = avg_t
 
-        return np.flip(R.from_matrix(best_R).as_euler('ZYX')), best_t
+        return np.flip(best_R), best_t
+    
+    def remove_outliers(self, rotation_threshold=0.05, translation_threshold=0.05):
+        R_base_cam, t_base_cam = self.calculate_base_to_camera_transform()
+
+        inliers_R = []
+        inliers_t = []
+
+        mean_R = np.mean([R.from_matrix(rot).as_euler('ZYX') for rot in R_base_cam], axis=0)
+        mean_t = np.mean(t_base_cam, axis=0)
+
+        for i in range(len(R_base_cam)):
+            diff_R = self.calc_angular_error(R.from_matrix(R_base_cam[i]).as_euler('ZYX'), mean_R)
+            diff_t = np.linalg.norm(t_base_cam[i] - mean_t)
+
+            if diff_R < rotation_threshold and diff_t < translation_threshold:
+                inliers_R.append(R_base_cam[i])
+                inliers_t.append(t_base_cam[i])
+
+        return inliers_R, inliers_t
+
+    def find_best_pose_from_neighborhood(self, inliers_R, inliers_t, threshold=0.05):
+        best_inliers_count = 0
+        best_R = None
+        best_t = None
+
+        for i in range(len(inliers_R)):
+            current_R = inliers_R[i]
+            current_t = inliers_t[i]
+
+            inliers_count = 0
+            for j in range(len(inliers_R)):
+                if i == j:
+                    continue
+
+                diff_R = self.calc_angular_error(R.from_matrix(inliers_R[j]).as_euler('ZYX'), R.from_matrix(current_R).as_euler('ZYX'))
+                diff_t = np.linalg.norm(inliers_t[j] - current_t)
+
+                if diff_R < threshold and diff_t < threshold:
+                    inliers_count += 1
+
+            if inliers_count > best_inliers_count:
+                best_inliers_count = inliers_count
+                best_R = current_R
+                best_t = current_t
+
+        return R.from_matrix(best_R).as_euler('ZYX'), best_t
+
+# Example usage
+if __name__ == "__main__":
+    csv_filename = "handeye.csv"
+    handeye = HandEyeCalibration(csv_filename)
+
+    # Step 1: Remove outliers
+    inliers_R, inliers_t = handeye.remove_outliers()
+
+    # Step 2: Find best pose using neighborhood analysis
+    best_R, best_t = handeye.find_best_pose_from_neighborhood(inliers_R, inliers_t)
+
+    print("Meilleure estimation de R (Base -> Caméra):\n", best_R)
+    print("Meilleure estimation de t (Base -> Caméra):\n", best_t)
+
+    
+    def find_best_pose_from_neighborhood(self, inliers_R, inliers_t, threshold=0.05):
+        best_inliers_count = 0
+        best_R = None
+        best_t = None
+
+        for i in range(len(inliers_R)):
+            current_R = inliers_R[i]
+            current_t = inliers_t[i]
+
+            inliers_count = 0
+            for j in range(len(inliers_R)):
+                if i == j:
+                    continue
+
+                diff_R = self.calc_angular_error(R.from_matrix(inliers_R[j]).as_euler('ZYX'), R.from_matrix(current_R).as_euler('ZYX'))
+                diff_t = np.linalg.norm(inliers_t[j] - current_t)
+
+                if diff_R < threshold and diff_t < threshold:
+                    inliers_count += 1
+
+            if inliers_count > best_inliers_count:
+                best_inliers_count = inliers_count
+                best_R = current_R
+                best_t = current_t
+
+        return R.from_matrix(best_R).as_euler('ZYX'), best_t
     
     def generate_final_comparison(self, best_R, best_t):
         mean_real_t = np.mean(self.real_heads, axis=0)
@@ -170,15 +266,16 @@ class HandEyeCalibration:
         plt.close()
 
 
-
-
-
 if __name__ == "__main__":
     csv_filename = "handeye.csv"
     handeye = HandEyeCalibration(csv_filename)
     handeye.calculate_estimated_heads()
     handeye.plot_comparison()
+    """
     best_R, best_t = handeye.ransac_for_base_to_camera()
     print("Meilleure estimation de R (Base -> Caméra):\n", best_R)
     print("Meilleure estimation de t (Base -> Caméra):\n", best_t)
-    handeye.generate_final_comparison(best_R,best_t)
+    """
+    #handeye.generate_final_comparison(best_R,best_t)
+    inliers_R, inliers_t = handeye.remove_outliers()
+    best_R, best_t = handeye.find_best_pose_from_neighborhood(inliers_R, inliers_t)
